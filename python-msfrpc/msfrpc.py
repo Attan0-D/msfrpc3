@@ -9,7 +9,7 @@
 # You should have received a copy of the GNU General Public License along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 import msgpack
-import httplib
+import http.client
 
 class Msfrpc:
   class MsfError(Exception):
@@ -31,9 +31,9 @@ class Msfrpc:
     self.token = False
     self.headers = {"Content-type" : "binary/message-pack" }
     if self.ssl:
-      self.client = httplib.HTTPSConnection(self.host,self.port)
+      self.client = http.client.HTTPSConnection(self.host,self.port)
     else:
-      self.client = httplib.HTTPConnection(self.host,self.port)
+      self.client = http.client.HTTPConnection(self.host,self.port)
  
   def encode(self,data):
     return msgpack.packb(data)
@@ -56,10 +56,11 @@ class Msfrpc:
   
   def login(self,user,password):
     ret = self.call('auth.login',[user,password])
-    if ret.get('result') == 'success':
-	self.authenticated = True
-        self.token = ret.get('token')
-        return True
+    if ret.get(b'result') == b'success':
+            self.authenticated = True
+            self.token = ret.get(b'token')
+            return True
+
     else:
         raise self.MsfAuthError("MsfRPC: Authentication failed")
 
@@ -75,10 +76,11 @@ if __name__ == '__main__':
   mod = client.call('module.exploits')
   
   # Grab the first item from the modules value of the returned dict
-  print "Compatible payloads for : %s\n" % mod['modules'][0]
+  print("Compatible payloads for : %s\n" % mod['modules'][0])
   
   # Get the list of compatible payloads for the first option
   ret = client.call('module.compatible_payloads',[mod['modules'][0]])
   for i in (ret.get('payloads')):
-    print "\t%s" % i
+    print("\t%s" % i)
+
 
